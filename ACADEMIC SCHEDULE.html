@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class Schedule Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
+    body {background:linear-gradient(135deg,#6a11cb 0%,#2575fc 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;}
+    .container {width:100%;max-width:1200px;background:#fff;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.2);overflow:hidden;}
+    header {background:#4a00e0;color:#fff;padding:20px;text-align:center;}
+    h1 {font-size:28px;margin-bottom:5px;}
+    .subtitle {font-size:16px;opacity:0.9;}
+    .content {display:grid;grid-template-columns:2fr 1fr;height:600px;}
+    .schedule {padding:20px;overflow-y:auto;}
+
+    /* ✅ FIXED ALIGNMENT */
+    .days-header, .time-slot {
+      display: grid;
+      grid-template-columns: 80px repeat(7, 1fr);
+      gap: 2px;
+    }
+    .day-cell, .time-label, .schedule-cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 40px;
+      padding: 5px;
+      font-size: 12px;
+      border-radius: 3px;
+      text-align: center;
+    }
+    .day-cell {background:#f0f0f0;font-weight:bold;}
+    .time-label {background:#f8f9fa;font-weight:500;}
+    .schedule-cell {background:#e9ecef;}
+    .schedule-cell.has-class {color:#fff;font-weight:500;cursor:pointer;}
+    .schedule-cell.has-class:hover {filter:brightness(110%);transform:translateY(-1px);box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+
+    .sidebar {background:#f8f9fa;padding:20px;border-left:1px solid #dee2e6;}
+    .classes-list {background:#fff;border-radius:10px;padding:15px;box-shadow:0 3px 10px rgba(0,0,0,0.08);}
+    h2 {font-size:18px;margin-bottom:15px;color:#4a00e0;display:flex;align-items:center;gap:8px;}
+    .class-item {display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px;border-radius:5px;background:#f8f9fa;}
+    .class-color {width:15px;height:15px;border-radius:50%;flex-shrink:0;}
+    .class-info {font-size:13px;}
+    .current-time {background:#ffd166;color:#333;padding:10px;border-radius:10px;text-align:center;margin-top:15px;font-weight:600;}
+
+    @media(max-width:992px){.content{grid-template-columns:1fr;height:auto;}.sidebar{border-left:none;border-top:1px solid #dee2e6;}}
+
+    /* ✅ Portrait warning */
+    @media screen and (orientation:portrait) {
+      body::before {
+        content: "📱 Please rotate your phone to landscape";
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: #000;
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 20px;
+        z-index: 9999;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1><i class="fas fa-calendar-alt"></i> Class Schedule Dashboard</h1>
+    <p class="subtitle">Schedule</p>
+  </header>
+
+  <div class="content">
+    <div class="schedule">
+      <div class="days-header">
+        <div class="day-cell">Time</div>
+        <div class="day-cell">Sunday</div>
+        <div class="day-cell">Monday</div>
+        <div class="day-cell">Tuesday</div>
+        <div class="day-cell">Wednesday</div>
+        <div class="day-cell">Thursday</div>
+        <div class="day-cell">Friday</div>
+        <div class="day-cell">Saturday</div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="classes-list">
+        <h2><i class="fas fa-book"></i> My Classes</h2>
+        <div class="class-item"><div class="class-color" style="background:#560bad;"></div><div class="class-info">Ethics / Etika</div></div>
+        <div class="class-item"><div class="class-color" style="background:#f72585;"></div><div class="class-info">Physical Activity Towards Health and Fitness 1</div></div>
+        <div class="class-item"><div class="class-color" style="background:#7209b7;"></div><div class="class-info">Science, Technology, and Society</div></div>
+        <div class="class-item"><div class="class-color" style="background:#f3722c;"></div><div class="class-info">People and the Earth's Ecosystems</div></div>
+        <div class="class-item"><div class="class-color" style="background:#90be6d;"></div><div class="class-info">Reading in Philippine History</div></div>
+        <div class="class-item"><div class="class-color" style="background:#3a0ca3;"></div><div class="class-info">Understanding the Self</div></div>
+        <div class="class-item"><div class="class-color" style="background:#4361ee;"></div><div class="class-info">Panitikang Filipino</div></div>
+        <div class="class-item"><div class="class-color" style="background:#f94144;"></div><div class="class-info">Purposive Communication</div></div>
+        <div class="class-item"><div class="class-color" style="background:#4cc9f0;"></div><div class="class-info">PUPSIS</div></div>
+        <div class="class-item"><div class="class-color" style="background:#06d6a0;"></div><div class="class-info">Civic Welfare Training Service 1</div></div>
+      </div>
+      <div class="current-time">
+        <i class="fas fa-clock"></i> Current Time: <span id="time-display">Loading...</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const scheduleContainer = document.querySelector('.schedule');
+
+  const times = [
+    '6:00 AM','6:30 AM','7:00 AM','7:30 AM','8:00 AM','8:30 AM',
+    '9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM',
+    '12:00 PM','12:30 PM','1:00 PM','1:30 PM','2:00 PM','2:30 PM',
+    '3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM','5:30 PM',
+    '6:00 PM','6:30 PM','7:00 PM','7:30 PM','8:00 PM','8:30 PM','9:00 PM','9:30 PM','10:00 PM'
+  ];
+
+  // color map
+  const colors = {
+    'Ethics / Etika':'#560bad',
+    'Physical Activity Towards Health and Fitness 1':'#f72585',
+    'Science, Technology, and Society':'#7209b7',
+    'Science, Technology, and Society (End at 4:30PM)':'#7209b7',
+    "People and the Earth's Ecosystems":'#f3722c',
+    'Reading in Philippine History':'#90be6d',
+    'Understanding the Self':'#3a0ca3',
+    'Panitikang Filipino':'#4361ee',
+    'Panitikang Filipino (End at 5:00PM)':'#4361ee',
+    'Purposive Communication':'#f94144',
+    'PUPSIS':'#4cc9f0',
+    'Civic Welfare Training Service 1':'#06d6a0'
+  };
+
+  const classes = [
+    // Sunday
+    {day:0,time:'6:30 AM',name:'PUPSIS'},
+    {day:0,time:'7:30 AM',name:'Civic Welfare Training Service 1'},
+    {day:0,time:'8:00 AM',name:'Civic Welfare Training Service 1'},
+    {day:0,time:'8:30 AM',name:'Civic Welfare Training Service 1'},
+    {day:0,time:'9:00 AM',name:'Civic Welfare Training Service 1'},
+    {day:0,time:'9:30 AM',name:'Civic Welfare Training Service 1'},
+    {day:0,time:'10:00 AM',name:'Civic Welfare Training Service 1'},
+    {day:0,time:'10:30 AM',name:'Civic Welfare Training Service 1'},
+
+    // Monday
+    {day:1,time:'10:00 AM',name:'Physical Activity Towards Health and Fitness 1'},
+    {day:1,time:'10:30 AM',name:'Physical Activity Towards Health and Fitness 1'},
+    {day:1,time:'11:00 AM',name:'Physical Activity Towards Health and Fitness 1'},
+    {day:1,time:'11:30 AM',name:'Physical Activity Towards Health and Fitness 1'},
+	{day:1,time:'12:00 PM',name:'Physical Activity Towards Health and Fitness 1'},
+    {day:1,time:'1:30 PM',name:'Science, Technology, and Society'},
+    {day:1,time:'2:00 PM',name:'Science, Technology, and Society'},
+    {day:1,time:'2:30 PM',name:'Science, Technology, and Society'},
+    {day:1,time:'3:00 PM',name:'Science, Technology, and Society'},
+    {day:1,time:'3:30 PM',name:'Science, Technology, and Society'},
+    {day:1,time:'4:00 PM',name:'Science, Technology, and Society (End at 4:30PM)'},
+    {day:1,time:'4:30 PM',name:"People and the Earth's Ecosystems"},
+    {day:1,time:'5:00 PM',name:"People and the Earth's Ecosystems"},
+    {day:1,time:'5:30 PM',name:"People and the Earth's Ecosystems"},
+    {day:1,time:'6:00 PM',name:"People and the Earth's Ecosystems"},
+    {day:1,time:'6:30 PM',name:"People and the Earth's Ecosystems"},
+    {day:1,time:'7:00 PM',name:"People and the Earth's Ecosystems"},
+	{day:1,time:'7:30 PM',name:"People and the Earth's Ecosystems"},
+	{day:1,time:'8:00 PM',name:"People and the Earth's Ecosystems"},
+
+    // Thursday
+    {day:4,time:'7:30 AM',name:'Ethics / Etika'},
+    {day:4,time:'8:00 AM',name:'Ethics / Etika'},
+	{day:4,time:'8:30 AM',name:'Ethics / Etika'},
+    {day:4,time:'9:00 AM',name:'Ethics / Etika'},
+	{day:4,time:'9:30 AM',name:'Ethics / Etika'},
+    {day:4,time:'10:00 AM',name:'Ethics / Etika'},
+    {day:4,time:'10:30 AM',name:'Ethics / Etika'},
+    {day:4,time:'6:00 PM',name:'Reading in Philippine History / Mga Babasahin Hinggil sa Kasaysayan ng Pilipinas'},
+	{day:4,time:'6:30 PM',name:'Reading in Philippine History / Mga Babasahin Hinggil sa Kasaysayan ng Pilipinas'},
+    {day:4,time:'7:00 PM',name:'Reading in Philippine History / Mga Babasahin Hinggil sa Kasaysayan ng Pilipinas'},
+    {day:4,time:'7:30 PM',name:'Reading in Philippine History / Mga Babasahin Hinggil sa Kasaysayan ng Pilipinas'},
+    {day:4,time:'8:00 PM',name:'Reading in Philippine History / Mga Babasahin Hinggil sa Kasaysayan ng Pilipinas'},
+    {day:4,time:'8:30 PM',name:'Reading in Philippine History / Mga Babasahin Hinggil sa Kasaysayan ng Pilipinas'},
+    {day:4,time:'9:00 PM',name:'Reading in Philippine History / Mga Babasahin Hinggil sa Kasaysayan ng Pilipinas'},
+
+    // Saturday
+    {day:6,time:'10:30 AM',name:'Understanding the Self'},
+    {day:6,time:'11:00 AM',name:'Understanding the Self'},
+    {day:6,time:'11:30 AM',name:'Understanding the Self'},
+    {day:6,time:'12:00 PM',name:'Understanding the Self'},
+    {day:6,time:'12:30 PM',name:'Understanding the Self'},
+    {day:6,time:'1:00 PM',name:'Understanding the Self'},
+	{day:6,time:'1:30 PM',name:'Understanding the Self'},
+    {day:6,time:'2:00 PM',name:'Panitikang Filipino'},
+    {day:6,time:'2:30 PM',name:'Panitikang Filipino'},
+    {day:6,time:'3:00 PM',name:'Panitikang Filipino'},
+    {day:6,time:'3:30 PM',name:'Panitikang Filipino'},
+    {day:6,time:'4:00 PM',name:'Panitikang Filipino'},
+    {day:6,time:'4:30 PM',name:'Panitikang Filipino (End at 5:00PM)'},
+    {day:6,time:'5:00 PM',name:'Purposive Communication'},
+    {day:6,time:'5:30 PM',name:'Purposive Communication'},
+    {day:6,time:'6:00 PM',name:'Purposive Communication'},
+    {day:6,time:'6:30 PM',name:'Purposive Communication'},
+    {day:6,time:'7:00 PM',name:'Purposive Communication'},
+	{day:6,time:'7:30 PM',name:'Purposive Communication'},
+    {day:6,time:'8:00 PM',name:'Purposive Communication'}
+  ];
+
+  times.forEach(time=>{
+    const timeSlot=document.createElement('div');
+    timeSlot.className='time-slot';
+    const timeLabel=document.createElement('div');
+    timeLabel.className='time-label';
+    timeLabel.textContent=time;
+    timeSlot.appendChild(timeLabel);
+
+    for(let day=0;day<7;day++){
+      const cell=document.createElement('div');
+      cell.className='schedule-cell';
+      const classAtTime=classes.find(c=>c.time===time && c.day===day);
+      if(classAtTime){
+        cell.classList.add('has-class');
+        cell.textContent=classAtTime.name;
+        cell.style.background=colors[classAtTime.name] || '#4cc9f0';
+      }
+      timeSlot.appendChild(cell);
+    }
+    scheduleContainer.appendChild(timeSlot);
+  });
+
+  function updateTime(){
+    const now=new Date();
+    document.getElementById('time-display').textContent=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }
+  updateTime();setInterval(updateTime,1000);
+});
+</script>
+</body>
+</html>
